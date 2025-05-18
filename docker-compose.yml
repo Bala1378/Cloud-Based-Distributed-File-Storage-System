@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - aws
+      - gcp
+      - azure
+
+  aws:
+    build: ./aws_storage
+    environment:
+      - STORAGE_NAME=AWS
+      - PORT=5001
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./aws_storage:/app/aws_storage
+
+  gcp:
+    build: ./gcp_storage
+    environment:
+      - STORAGE_NAME=GoogleCloud
+      - PORT=5002
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./gcp_storage:/app/googlecloud_storage
+
+  azure:
+    build: ./azure_storage
+    environment:
+      - STORAGE_NAME=Azure
+      - PORT=5003
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./azure_storage:/app/azure_storage

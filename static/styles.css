@@ -1,0 +1,100 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.form h1 {
+    text-align: center;
+    color: #333;
+}
+
+.form label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+
+.form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.password-container {
+    position: relative;
+}
+
+.password-container input {
+    width: 93%;
+    max-width: 400px;
+    padding-right: 35px;
+}
+
+.password-container .toggle-password {
+    position: absolute;
+    right: -5px;
+    top: 35%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #aaa;
+}
+
+.form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form button:hover {
+    background-color: #0056b3;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.login-link a {
+    color: #007bff;
+    text-decoration: none;
+}
+.login-link a:hover {
+    text-decoration: underline;
+}
+.flash-messages {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.flash-message {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.flash-message.success { background-color: #4CAF50; color: white; }
+.flash-message.error { background-color: #f44336; color: white; }
+.flash-message.info { background-color: #4CAF50; color: white; }

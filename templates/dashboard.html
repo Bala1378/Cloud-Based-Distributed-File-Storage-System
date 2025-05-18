@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Storage System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+<body>    
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+    <h2>File Storage System</h2>
+
+    <div class="container">
+
+        <button class="btn remove-btn" id="removeBtn" onclick="enableSelectionMode()">Remove</button>
+
+        <div class="button-container">
+            <button class="btn" onclick="document.getElementById('uploadInput').click()">Upload PDF</button>
+            <input type="file" id="uploadInput" accept="application/pdf" style="display: none;" onchange="uploadFile()">
+            <button class="btn" onclick="enableDownloadMode()">Download PDF</button>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="selection-buttons" id="downloadMode" style="display: none;">
+            <button class="btn download-btn" id="downloadSelected" onclick="downloadFiles()">Download</button>
+            <button class="btn cancel-btn" id="cancelSelection" onclick="cancelSelectionMode()">Cancel</button>
+        </div>
+
+        <div class="selection-buttons" id="selectionMode" style="display: none;">
+            <button class="btn delete-btn" onclick="confirmDeletion()">Delete</button>
+            <button class="btn cancel-btn" onclick="disableSelectionMode()">Cancel</button>
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+        
+    </div>
+    
+    <script>
+        function uploadFile() {
+            let fileInput = document.getElementById("uploadInput");
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+            if (file.type !== "application/pdf") {
+                alert("Only PDF files are allowed!");
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) { 
+                alert("File size must be less than 10MB!");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/upload", { method: "POST", body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchFiles();
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        window.onload = function() {
+            fetchFiles();
+        };
+        
+        function fetchFiles() {
+            fetch("/files", { cache: "no-store" })
+                .then(response => response.json())
+                .then(files => {
+                    let fileList = document.getElementById("fileList");
+                    fileList.innerHTML = "";
+
+                    if (files.length === 0) {
+                        fileList.innerHTML = "<p>No files available.</p>";
+                        return;
+                    }
+
+                    files.forEach(file => {
+                        let fileDiv = document.createElement("div");
+                        fileDiv.className = "file-item";
+                        fileDiv.innerHTML = `
+                            <input type="checkbox" class="file-checkbox" value="${file.name}" style="visibility: hidden;">
+                            <img src="${file.icon}" alt="PDF">
+                            <a href="/download/${file.name}" target="_blank">${file.name}</a>
+                        `;
+                        fileList.appendChild(fileDiv);
+                    });
+                })
+            .catch(error => console.error("Error:", error));
+        }
+
+        
+        function enableDownloadMode() {
+            disableSelectionMode();
+            document.getElementById("downloadMode").style.display = "block";
+
+            let checkboxes = document.querySelectorAll(".file-checkbox");
+            checkboxes.forEach(checkbox => checkbox.style.visibility = "visible");
+        }
+
+        function downloadFiles() {
+            let selectedFiles = Array.from(document.querySelectorAll(".file-checkbox:checked")).map(cb => cb.value);
+            if (selectedFiles.length === 0) {
+                alert("No files selected!");
+                return;
+            }
+            selectedFiles.forEach(file => {
+                let link = document.createElement("a");
+                link.href = `/download/${file}`;
+                link.download = file;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            cancelSelectionMode();
+        }
+
+        function cancelSelectionMode() {
+            document.getElementById("downloadMode").style.display = "none";
+
+            let checkboxes = document.querySelectorAll(".file-checkbox");
+            checkboxes.forEach(checkbox => {
+                checkbox.style.visibility = "hidden";
+                checkbox.checked = false;
+            });
+        }
+
+        function enableSelectionMode() {
+            cancelSelectionMode();
+            document.getElementById("selectionMode").style.display = "block";
+
+            let checkboxes = document.querySelectorAll(".file-checkbox");
+            checkboxes.forEach(checkbox => checkbox.style.visibility = "visible");
+        }
+
+        function disableSelectionMode() {
+            document.getElementById("selectionMode").style.display = "none";
+
+            let checkboxes = document.querySelectorAll(".file-checkbox");
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.style.visibility = "hidden";
+            });
+        }
+
+        function confirmDeletion() {
+            let selectedFiles = Array.from(document.querySelectorAll(".file-checkbox:checked")).map(cb => cb.value);
+            if (selectedFiles.length === 0) {
+                alert("No files selected!");
+                return;
+            }
+            if (confirm("Are you sure you want to delete the selected files?")) {
+                selectedFiles.forEach(file => deleteFiles(file));
+            }
+            
+            cancelSelectionMode();
+        }
+
+        function deleteFiles(folderName) {
+            fetch(`/delete/${folderName}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchFiles();
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+    </script>
+    <script>
+        setTimeout(function() {
+            document.querySelectorAll('.flash-message').forEach(msg => msg.style.display = 'none');
+        }, 3000);
+    </script>
+    
+</body>
+</html>
